@@ -10,7 +10,7 @@ references:
     run:
       name: Update git submodules
       command: |
-        git submodule update --depth 1 --init --remote --recursive
+        git submodule update --init --remote --recursive
 
   install_dependencies: &install_dependencies
     run:
@@ -18,7 +18,7 @@ references:
       command: |
         sudo apt-get update
 
-        sudo apt-get install patch ghostscript
+        sudo apt-get install patch ghostscript nano
 
         pwd
 
@@ -48,6 +48,7 @@ references:
         echo "Wait for site to start"
         sleep 5
 
+        # Code from https://stackoverflow.com/a/42873372/550451
         curl --fail \
             --connect-timeout 5 \
             --max-time 10 \
