@@ -41,10 +41,27 @@ references:
     run:
       name: Patch terraform-website/Makefile and run website locally (in background)
       command: |
-        echo "Patch terraform-website/Makefile to remove --tty"
-        patch terraform-website/Makefile bin/Makefile.patch
         cd terraform-website
-        make website &
+
+        exit 1
+
+        # Create volumes with content
+        # (CircleCI does not support mounting folders - https://circleci.com/docs/2.0/building-docker-images/#mounting-folders)
+        docker create -v /ext --name ext alpine:3.4 /bin/true
+        docker create -v /website --name website alpine:3.4 /bin/true
+        docker cp $(pwd)/ext ext:/ext
+        docker cp $(pwd)/content website:/website
+
+        docker run \
+        --interactive \
+        --publish "4567:4567" \
+        --publish "35729:35729" \
+        -e "DEPLOY_ENV=development" \
+        --volumes-from ext \
+        --volumes-from website \
+        hashicorp/middleman-hashicorp:0.3.35
+
+#        make website &
         echo "Wait for site to start"
         sleep 5
 
