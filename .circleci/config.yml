@@ -4,6 +4,7 @@ references:
   container_config: &container_config
     docker:
       - image: circleci/golang:1.11
+    working_directory: ~/project
 
   install_dependencies: &install_dependencies
     run:
@@ -11,31 +12,24 @@ references:
       command: |
         sudo apt-get update
 
-        # Install OTP package deps
-        sudo apt-get install wkhtmltopdf
+        sudo apt-get install patch ghostscript
 
-        # Check version
-        wkhtmltopdf --version
-
-        # gnu grep
-        apt-get install grep
-
-        grep --version
+        pwd
 
         # Install wkhtmltopdf
         mkdir wkhtmltopdf_download
         cd wkhtmltopdf_download
-        wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
-        sudo apt install ./wkhtmltox_0.12.5-1.bionic_amd64.deb
+        wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.stretch_amd64.deb
+        sudo apt-get install ./wkhtmltox_0.12.5-1.stretch_amd64.deb
         cd ..
         rm -rf wkhtmltopdf_download/
+        alias wkhtmltopdf=/usr/local/bin/wkhtmltopdf
 
-        # verify version
+        # verify versions
+        grep --version
+        sed --version
         wkhtmltopdf --version
-
-        # Install gs
-        apt install ghostscript
-
+        gs --version
 
   update_submodules: &update_submodules
     run:
@@ -49,6 +43,7 @@ references:
       command: |
         echo "Patch terraform-website/Makefile to remove --tty"
         patch terraform-website/Makefile bin/Makefile.patch
+        cd terraform-website
         make website &
         echo "Wait for site to start"
         sleep 5
@@ -65,6 +60,7 @@ jobs:
     <<: *container_config
     steps:
       - checkout
+      - setup_remote_docker
       - *update_submodules
       - *run_website_locally
       - *install_dependencies
