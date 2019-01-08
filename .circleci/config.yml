@@ -61,6 +61,8 @@ references:
             --retry-max-time 40 \
             'http://localhost:4567/' > /dev/null
 
+        cd ..
+
         # Generate all while web-site is running
         ./bin/generate.sh
 
