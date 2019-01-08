@@ -37,7 +37,7 @@ references:
 
   run_website_locally_and_generate_all: &run_website_locally_and_generate_all
     run:
-      name: Patch terraform-website/Makefile and run website locally (in background)
+      name: Run website locally (in background) and generate all pdfs
       environment:
         GIT_USER_EMAIL: anton+betajobot@antonbabenko.com
         GIT_USER_NAME: betajobot

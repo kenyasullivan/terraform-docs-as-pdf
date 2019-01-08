@@ -166,8 +166,8 @@ function git_config_commit_and_push {
 
   git add .
   git status
-#  git commit -m "[skip ci] Updated documentation"
-#  git push -q https://${GITHUB_PERSONAL_TOKEN}@github.com/antonbabenko/terraform-docs-as-pdf.git master
+  git commit -m "[skip ci] Updated documentation"
+  git push -q https://${GITHUB_PERSONAL_TOKEN}@github.com/antonbabenko/terraform-docs-as-pdf.git master
 
 }
 
