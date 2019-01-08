@@ -6,6 +6,12 @@ references:
       - image: circleci/golang:1.11
     working_directory: ~/project
 
+  update_submodules: &update_submodules
+    run:
+      name: Update git submodules
+      command: |
+        git submodule update --init --remote --recursive
+
   install_dependencies: &install_dependencies
     run:
       name: Install dependencies
@@ -30,12 +36,6 @@ references:
         sed --version
         wkhtmltopdf --version
         gs --version
-
-  update_submodules: &update_submodules
-    run:
-      name: Update git submodules
-      command: |
-        git submodule update --init --remote --recursive
 
   run_website_locally: &run_website_locally
     run:
@@ -62,8 +62,8 @@ jobs:
       - checkout
       - setup_remote_docker
       - *update_submodules
-      - *run_website_locally
       - *install_dependencies
+      - *run_website_locally
       - *generate_all
 
 workflows:
