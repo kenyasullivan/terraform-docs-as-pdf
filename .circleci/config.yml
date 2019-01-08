@@ -61,7 +61,7 @@ references:
         --volumes-from website \
         hashicorp/middleman-hashicorp:0.3.35
 
-#        make website &
+        #        make website &
         echo "Wait for site to start"
         sleep 5
 
