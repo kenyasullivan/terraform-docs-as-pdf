@@ -10,7 +10,7 @@ references:
     run:
       name: Update git submodules
       command: |
-        git submodule update --init --remote --recursive
+        git submodule update --depth 1 --init --remote --recursive
 
   install_dependencies: &install_dependencies
     run:
@@ -47,7 +47,14 @@ references:
         make website &
         echo "Wait for site to start"
         sleep 5
-        until curl -sS http://localhost:4567/ > /dev/null; do sleep 1; done
+
+        curl --fail \
+            --connect-timeout 5 \
+            --max-time 10 \
+            --retry 10 \
+            --retry-delay 1 \
+            --retry-max-time 40 \
+            'http://localhost:4567/' > /dev/null
 
   generate_all: &generate_all
     run:
