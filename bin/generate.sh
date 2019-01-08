@@ -21,7 +21,35 @@ URLS="unique-urls.txt"
 
 CMDS_DIR="cmds"
 
-function install_dependencies {
+function assert_is_installed {
+  local readonly name="$1"
+
+  if [[ ! $(command -v ${name}) ]]; then
+    echo "ERROR: The binary '$name' is required by this script but is not installed or in the system's PATH."
+    exit 1
+  fi
+}
+
+function string_starts_with {
+  local readonly str="$1"
+  local readonly prefix="$2"
+
+  [[ "$str" == "$prefix"* ]]
+}
+
+function verify_dependencies {
+
+  assert_is_installed git
+  assert_is_installed curl
+  assert_is_installed grep # gnu
+#  assert_is_installed ggrep
+  assert_is_installed sed
+
+  # https://wkhtmltopdf.org/downloads.html
+  assert_is_installed wkhtmltopdf
+
+  #
+  assert_is_installed gs
 
 # gnu grep, sed, curl
 # wkhtmltopdf
@@ -48,12 +76,6 @@ function recreate_work_dir {
   mkdir -p pdfs
 }
 
-function string_starts_with {
-  local readonly str="$1"
-  local readonly prefix="$2"
-
-  [[ "$str" == "$prefix"* ]]
-}
 
 function make_cmd_files {
 
@@ -138,12 +160,12 @@ function combine_pdf_files {
 
 }
 
-#echo "Installing dependencies..."
-#install_dependencies
+#echo "Verified installed dependencies..."
+#verify_dependencies
 #
-#echo "Preparing list of URLs..."
-#prepare_urls
-#
+echo "Preparing list of URLs..."
+prepare_urls
+
 #echo "Prepare working directories..."
 #recreate_work_dir
 #
@@ -156,8 +178,8 @@ function combine_pdf_files {
 #echo "Making pdf files... This may take some time..."
 #make_pdf_files
 
-echo "Combining PDF files..."
-combine_pdf_files
+#echo "Combining PDF files..."
+#combine_pdf_files
 
 #echo "Upload PDF files to github..."
 #upload_pdf_files

@@ -1,3 +1,78 @@
+version: 2
+
+references:
+  container_config: &container_config
+    docker:
+      - image: ubuntu:bionic
+
+  install_dependencies: &install_dependencies
+    run:
+      name: Install dependencies
+      environment:
+        # See minimum_otp_vsn in rebar.config
+        OTP_VERSION: "20.1"
+      command: |
+        sudo apt-get update
+
+        # Install OTP package deps
+        sudo apt-get install wkhtmltopdf
+
+        # Check version
+        wkhtmltopdf --version
+
+        # gnu grep
+        apt-get install grep
+
+        grep --version
+
+        # Install wkhtmltopdf
+        mkdir wkhtmltopdf_download
+        cd wkhtmltopdf_download
+        wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
+        sudo apt install ./wkhtmltox_0.12.5-1.bionic_amd64.deb
+        cd ..
+        rm -rf wkhtmltopdf_download/
+
+        # verify version
+        wkhtmltopdf --version
+
+        # Install gs
+        apt install ghostscript
+
+
+  update_submodules: &update_submodules
+    run:
+      name: Update git submodules
+      command: |
+        git submodule update --init --remote --recursive
+
+  run_website_locally: &run_website_locally
+    run:
+      name: Patch terraform-website/Makefile and run website locally (in background)
+      command: |
+        echo "Patch terraform-website/Makefile to remove --tty"
+        patch terraform-website/Makefile bin/Makefile.patch
+        make website &
+        echo "Wait for site to start"
+        sleep 5
+        until curl -sS http://localhost:4567/ > /dev/null; do sleep 1; done
+
+  generate_all: &generate_all
+    run:
+      name: Generate all
+      command: |
+        ./bin/generate.sh
+
+jobs:
+  build_all:
+    <<: *container_config
+    steps:
+      - checkout
+      - *update_submodules
+      - *run_website_locally
+      - *install_dependencies
+      - *generate_all
+
 workflows:
   version: 2
   nightly:
@@ -9,17 +84,12 @@ workflows:
               only:
                 - master
     jobs:
-      - test
+      - build_all
 
-jobs:
-  build:
-    docker:
-      - image: debian:stretch
-    steps:
-      - checkout
-      - run:
-          name: Greeting
-          command: echo Hello, world.
-      - run:
-          name: Print the Current Time
-          command: date
+
+  build_all:
+    jobs:
+      - build_all:
+          filters:
+            branches:
+              only: master
