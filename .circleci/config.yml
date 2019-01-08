@@ -25,11 +25,13 @@ references:
         # Install wkhtmltopdf
         mkdir wkhtmltopdf_download
         cd wkhtmltopdf_download
-        wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.stretch_amd64.deb
-        sudo apt-get install ./wkhtmltox_0.12.5-1.stretch_amd64.deb
+        wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.trusty_amd64.deb
+        set -e
+        sudo dpkg -i ./wkhtmltox_0.12.5-1.trusty_amd64.deb
+        sudo apt-get install -f
+        set +e
         cd ..
         rm -rf wkhtmltopdf_download/
-        alias wkhtmltopdf=/usr/local/bin/wkhtmltopdf
 
         # verify versions
         grep --version
@@ -43,35 +45,20 @@ references:
       command: |
         cd terraform-website
 
+        echo "Patch terraform-website/Makefile to remove --tty"
+        patch terraform-website/Makefile bin/Makefile.patch
+
         make website &
 
-        exit 1
-
-        # Create volumes with content
-        # (CircleCI does not support mounting folders - https://circleci.com/docs/2.0/building-docker-images/#mounting-folders)
-        docker create -v /ext --name ext alpine:3.4 /bin/true
-        docker create -v /website --name website alpine:3.4 /bin/true
-        docker cp $(pwd)/ext ext:/ext
-        docker cp $(pwd)/content website:/website
-
-        docker run \
-        --interactive \
-        --publish "4567:4567" \
-        --publish "35729:35729" \
-        -e "DEPLOY_ENV=development" \
-        --volumes-from ext \
-        --volumes-from website \
-        hashicorp/middleman-hashicorp:0.3.35
-
         echo "Wait for site to start"
-        sleep 5
+        sleep 10
 
         # Code from https://stackoverflow.com/a/42873372/550451
         curl --fail \
             --connect-timeout 5 \
             --max-time 10 \
             --retry 10 \
-            --retry-delay 1 \
+            --retry-delay 2 \
             --retry-max-time 40 \
             'http://localhost:4567/' > /dev/null
 
