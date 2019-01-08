@@ -1,11 +1,6 @@
 version: 2
 
 references:
-  container_config: &container_config
-    docker:
-      - image: circleci/golang:1.11
-
-
   update_submodules: &update_submodules
     run:
       name: Update git submodules
@@ -40,9 +35,12 @@ references:
         wkhtmltopdf --version
         gs --version
 
-  run_website_locally: &run_website_locally
+  run_website_locally_and_generate_all: &run_website_locally_and_generate_all
     run:
       name: Patch terraform-website/Makefile and run website locally (in background)
+      environment:
+        GIT_USER_EMAIL: anton+betajobot@antonbabenko.com
+        GIT_USER_NAME: betajobot
       command: |
         echo "Patch terraform-website/Makefile to remove --tty"
         patch terraform-website/Makefile bin/Makefile.patch
@@ -63,26 +61,18 @@ references:
             --retry-max-time 40 \
             'http://localhost:4567/' > /dev/null
 
-  generate_all: &generate_all
-    run:
-      name: Generate all
-      environment:
-        GIT_USER_EMAIL: anton+betajobot@antonbabenko.com
-        GIT_USER_NAME: betajobot
-      command: |
+        # Generate all while web-site is running
         ./bin/generate.sh
 
 jobs:
   build_all:
     machine: true
     working_directory: ~/project
-    # <<: *container_config
     steps:
-      - checkout     # - setup_remote_docker
+      - checkout
       - *update_submodules
       - *install_dependencies
-      - *run_website_locally
-      - *generate_all
+      - *run_website_locally_and_generate_all
 
 workflows:
   version: 2
