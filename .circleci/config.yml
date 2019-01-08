@@ -26,10 +26,7 @@ references:
         mkdir wkhtmltopdf_download
         cd wkhtmltopdf_download
         wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.trusty_amd64.deb
-        set -e
-        sudo dpkg -i ./wkhtmltox_0.12.5-1.trusty_amd64.deb
-        sudo apt-get install -f
-        set +e
+        sudo dpkg -i ./wkhtmltox_0.12.5-1.trusty_amd64.deb || sudo apt-get --fix-broken install
         cd ..
         rm -rf wkhtmltopdf_download/
 
