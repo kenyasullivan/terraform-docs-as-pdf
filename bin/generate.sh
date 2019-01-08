@@ -48,18 +48,14 @@ function verify_dependencies {
   # https://wkhtmltopdf.org/downloads.html
   assert_is_installed wkhtmltopdf
 
-  #
+  # https://www.ghostscript.com/download.html
   assert_is_installed gs
-
-# gnu grep, sed, curl
-# wkhtmltopdf
-# gs
-  echo
 }
 
 function prepare_urls {
   # Get all URLs from sitemap.xml
-  curl $TARGET_SITE/sitemap.xml | ggrep -Po 'http(s?)://[^ \"()\<>]*' | sed -r "s#/index.html\$##g" > all-urls.txt
+  # ggrep on Mac = GNU grep
+  curl $TARGET_SITE/sitemap.xml | grep -Po 'http(s?)://[^ \"()\<>]*' | sed -r "s#/index.html\$##g" > all-urls.txt
 
   # Drop duplicates
   sort all-urls.txt | uniq | sort -n > $URLS
@@ -125,7 +121,7 @@ function make_pdf_files {
     --print-media-type \
     --disable-javascript \
     --disable-internal-links \
-    --javascript-delay 1000 \
+    --javascript-delay 10000 \
     --load-error-handling skip \
     --stop-slow-scripts \
     --read-args-from-stdin \
@@ -145,7 +141,7 @@ function combine_pdf_files {
     if [[ $prev_name != $name ]]; then
       echo "Combining PDF files by name - $name"
 
-      gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=../${name}.pdf $(\ls -1 ${name}.*.pdf)
+      gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=../${name}.pdf $(\ls -1 ${name}.*.pdf | sort -V)
     fi
 
     prev_name=$name
@@ -154,32 +150,47 @@ function combine_pdf_files {
   # Make one huge (include terraform-website in the beginning)
   # @todo: include cover, toc
   echo "Combining all PDF files into one - complete-terraform-website.pdf"
-  gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=../complete-terraform-website.pdf ../terraform-website.pdf $(\ls -1 ../*.pdf | grep -v terraform-website.pdf)
+  gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=../complete-terraform-website.pdf ../terraform-website.pdf $(\ls -1 ../*.pdf | grep -v terraform-website.pdf | sort -V)
 
   popd
 
 }
 
-#echo "Verified installed dependencies..."
-#verify_dependencies
-#
+function git_config_commit_and_push {
+
+  echo "Configuring git to use user.email '$GIT_USER_EMAIL', user.name '$GIT_USER_NAME', and 'push.default matching'"
+  git config credential.helper 'cache --timeout=120'
+  git config user.email "$GIT_USER_EMAIL"
+  git config user.name "$GIT_USER_NAME"
+  git config --global push.default matching
+
+  git add .
+  git status
+#  git commit -m "[skip ci] Updated documentation"
+#  git push -q https://${GITHUB_PERSONAL_TOKEN}@github.com/antonbabenko/terraform-docs-as-pdf.git master
+
+}
+
+echo "Verified installed dependencies..."
+verify_dependencies
+
 echo "Preparing list of URLs..."
 prepare_urls
 
-#echo "Prepare working directories..."
-#recreate_work_dir
-#
-#echo "Making list of cmd files..."
-#make_cmd_files
-#
-#echo "Combining small cmd files into one..."
-#make_final_cmd_file
+echo "Prepare working directories..."
+recreate_work_dir
 
-#echo "Making pdf files... This may take some time..."
-#make_pdf_files
+echo "Making list of cmd files..."
+make_cmd_files
 
-#echo "Combining PDF files..."
-#combine_pdf_files
+echo "Combining small cmd files into one..."
+make_final_cmd_file
 
-#echo "Upload PDF files to github..."
-#upload_pdf_files
+echo "Making pdf files... This may take some time..."
+make_pdf_files
+
+echo "Combining PDF files..."
+combine_pdf_files
+
+echo "Upload PDF files to github..."
+git_config_commit_and_push
