@@ -1,7 +1,7 @@
 # Complete Terraform documentation as PDF files. Updating nightly.
 
 [![CircleCI](https://circleci.com/gh/antonbabenko/terraform-docs-as-pdf.svg?style=svg&circle-token=9e5321eb98d9d47cda7ef4209e287f56c25a702a)](https://circleci.com/gh/antonbabenko/terraform-docs-as-pdf)
-![](https://img.shields.io/github/repo-size/badges/shields.svg)
+![](https://img.shields.io/github/repo-size/antonbabenko/terraform-docs-as-pdf.svg)
 ![](https://img.shields.io/github/last-commit/antonbabenko/terraform-docs-as-pdf.svg)
 
 > Once upon a time, I've been missing Terraform documentation on my flight across Atlantic.
