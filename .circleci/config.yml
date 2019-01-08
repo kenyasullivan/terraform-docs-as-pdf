@@ -87,8 +87,7 @@ jobs:
     working_directory: ~/project
     # <<: *container_config
     steps:
-      - checkout
-      - setup_remote_docker
+      - checkout     # - setup_remote_docker
       - *update_submodules
       - *install_dependencies
       - *run_website_locally
