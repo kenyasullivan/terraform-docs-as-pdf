@@ -43,10 +43,10 @@ references:
     run:
       name: Patch terraform-website/Makefile and run website locally (in background)
       command: |
-        cd terraform-website
-
         echo "Patch terraform-website/Makefile to remove --tty"
         patch terraform-website/Makefile bin/Makefile.patch
+
+        cd terraform-website
 
         make website &
 
